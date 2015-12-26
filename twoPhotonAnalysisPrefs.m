@@ -1,202 +1,311 @@
 function varargout = twoPhotonAnalysisPrefs(varargin)
-% TWOPHOTONANALYSISPREFS MATLAB code for twoPhotonAnalysisPrefs.fig
-%      TWOPHOTONANALYSISPREFS, by itself, creates a new TWOPHOTONANALYSISPREFS or raises the existing
-%      singleton*.
-%
-%      H = TWOPHOTONANALYSISPREFS returns the handle to a new TWOPHOTONANALYSISPREFS or the handle to
-%      the existing singleton*.
-%
-%      TWOPHOTONANALYSISPREFS('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in TWOPHOTONANALYSISPREFS.M with the given input arguments.
-%
-%      TWOPHOTONANALYSISPREFS('Property','Value',...) creates a new TWOPHOTONANALYSISPREFS or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before twoPhotonAnalysisPrefs_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to twoPhotonAnalysisPrefs_OpeningFcn via varargin.
-%
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
-%
-% See also: GUIDE, GUIDATA, GUIHANDLES
+    % TWOPHOTONANALYSISPREFS MATLAB code for twoPhotonAnalysisPrefs.fig
+    %      TWOPHOTONANALYSISPREFS, by itself, creates a new TWOPHOTONANALYSISPREFS or raises the existing
+    %      singleton*.
+    %
+    %      H = TWOPHOTONANALYSISPREFS returns the handle to a new TWOPHOTONANALYSISPREFS or the handle to
+    %      the existing singleton*.
+    %
+    %      TWOPHOTONANALYSISPREFS('CALLBACK',hObject,eventData,handles,...) calls the local
+    %      function named CALLBACK in TWOPHOTONANALYSISPREFS.M with the given input arguments.
+    %
+    %      TWOPHOTONANALYSISPREFS('Property','Value',...) creates a new TWOPHOTONANALYSISPREFS or raises the
+    %      existing singleton*.  Starting from the left, property value pairs are
+    %      applied to the GUI before twoPhotonAnalysisPrefs_OpeningFcn gets called.  An
+    %      unrecognized property name or invalid value makes property application
+    %      stop.  All inputs are passed to twoPhotonAnalysisPrefs_OpeningFcn via varargin.
+    %
+    %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+    %      instance to run (singleton)".
+    %
+    % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help twoPhotonAnalysisPrefs
+    % Edit the above text to modify the response to help twoPhotonAnalysisPrefs
 
-% Last Modified by GUIDE v2.5 25-Dec-2015 14:03:15
+    % Last Modified by GUIDE v2.5 25-Dec-2015 19:29:03
 
-% Begin initialization code - DO NOT EDIT
-gui_Singleton = 1;
-gui_State = struct('gui_Name',       mfilename, ...
-                   'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @twoPhotonAnalysisPrefs_OpeningFcn, ...
-                   'gui_OutputFcn',  @twoPhotonAnalysisPrefs_OutputFcn, ...
-                   'gui_LayoutFcn',  [] , ...
-                   'gui_Callback',   []);
-if nargin && ischar(varargin{1})
-    gui_State.gui_Callback = str2func(varargin{1});
-end
+    % Begin initialization code - DO NOT EDIT
+    gui_Singleton = 1;
+    gui_State = struct('gui_Name',       mfilename, ...
+                       'gui_Singleton',  gui_Singleton, ...
+                       'gui_OpeningFcn', @twoPhotonAnalysisPrefs_OpeningFcn, ...
+                       'gui_OutputFcn',  @twoPhotonAnalysisPrefs_OutputFcn, ...
+                       'gui_LayoutFcn',  [] , ...
+                       'gui_Callback',   []);
+    if nargin && ischar(varargin{1})
+        gui_State.gui_Callback = str2func(varargin{1});
+    end
 
-if nargout
-    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
-else
-    gui_mainfcn(gui_State, varargin{:});
-end
-% End initialization code - DO NOT EDIT
+    if nargout
+        [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+    else
+        gui_mainfcn(gui_State, varargin{:});
+    end
+    % End initialization code - DO NOT EDIT
 
 
 % --- Executes just before twoPhotonAnalysisPrefs is made visible.
-function twoPhotonAnalysisPrefs_OpeningFcn(hObject, eventdata, handles, varargin)
-% This function has no output args, see OutputFcn.
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to twoPhotonAnalysisPrefs (see VARARGIN)
+function twoPhotonAnalysisPrefs_OpeningFcn(hObject,eventdata, handles, varargin) %#ok<INUSL>
+    % This function has no output args, see OutputFcn.
+    % hObject    handle to figure
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+    % varargin   command line arguments to twoPhotonAnalysisPrefs (see VARARGIN)
 
-% Choose default command line output for twoPhotonAnalysisPrefs
-handles.output = hObject;
+    % Choose default command line output for twoPhotonAnalysisPrefs
+    handles.output = hObject;
 
-% Update handles structure
-guidata(hObject, handles);
+    % Update handles structure
+    guidata(hObject, handles);
 
-% UIWAIT makes twoPhotonAnalysisPrefs wait for user response (see UIRESUME)
-% uiwait(handles.figureTwoPhotonAnalysisPrefs);
+    % UIWAIT makes twoPhotonAnalysisPrefs wait for user response (see UIRESUME)
+    % uiwait(handles.figureTwoPhotonAnalysisPrefs);
+    if ~exist('settings','dir');                      mkdir('settings');          end
+    if ~exist('settings/currentSettings.mat','file'); makeDefaultSettingsFiles(); end
 
+    load('settings/currentSettings.mat');
+    fillFields(setting,handles);
+    
+    if ~exist(setting.localBackupLocation,'dir') && ~isempty(setting.localBackupLocation)
+        mkdir(setting.localBackupLocation); 
+    end
+    
 
+function makeDefaultSettingsFiles()
+    setting.uName = 'admin';
+    setting.email = 'nielsenlabmbi@gmail.com';
+    setting.doHoverZoom = 1; 
+    setting.doSaveLocalBackups = 1; 
+    setting.localBackupLocation = 'localBackups';
+    save(['settings/' setting.uName '.mat'],'setting');
+    save('settings/currentSettings.mat','setting');
+    set(handles.textStatus,'string','Created default settings');
+
+    
+function fillFields(setting,handles)
+    set(handles.editUsername,'string',setting.uName);
+    set(handles.editEmail,'string',setting.email);
+    set(handles.editLocalBackupLocation,'string',setting.localBackupLocation);
+    set(handles.checkboxHoverZoom,'Value',setting.doHoverZoom);
+    set(handles.checkboxSaveLocal,'Value',setting.doSaveLocalBackups);
+    if ~setting.doSaveLocalBackups
+        set(handles.editLocalBackupLocation,'Enable','off');
+        set(handles.pushbuttonLocalBackupLocation,'Enable','off');
+    else
+        set(handles.editLocalBackupLocation,'Enable','on');
+        set(handles.pushbuttonLocalBackupLocation,'Enable','on');
+    end
+    set(handles.textStatus,'string',['Loaded settings for ' setting.uName]);
+
+    
 % --- Outputs from this function are returned to the command line.
-function varargout = twoPhotonAnalysisPrefs_OutputFcn(hObject, eventdata, handles) 
-% varargout  cell array for returning output args (see VARARGOUT);
-% hObject    handle to figure
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function varargout = twoPhotonAnalysisPrefs_OutputFcn(hObject, eventdata, handles)  %#ok<INUSL>
+    % varargout  cell array for returning output args (see VARARGOUT);
+    % hObject    handle to figure
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
-% Get default command line output from handles structure
-varargout{1} = handles.output;
+    % Get default command line output from handles structure
+    varargout{1} = handles.output;
 
+    
+function editEmail_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editEmail (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
-
-function editEmail_Callback(hObject, eventdata, handles)
-% hObject    handle to editEmail (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of editEmail as text
-%        str2double(get(hObject,'String')) returns contents of editEmail as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function editEmail_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to editEmail (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function editUsername_Callback(hObject, eventdata, handles)
-% hObject    handle to editUsername (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of editUsername as text
-%        str2double(get(hObject,'String')) returns contents of editUsername as a double
+    % Hints: get(hObject,'String') returns contents of editEmail as text
+    %        str2double(get(hObject,'String')) returns contents of editEmail as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function editUsername_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to editUsername (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+function editEmail_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editEmail (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    % Hint: edit controls usually have a white background on Windows.
+    %       See ISPC and COMPUTER.
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
+
+
+
+function editUsername_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editUsername (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % Hints: get(hObject,'String') returns contents of editUsername as text
+    %        str2double(get(hObject,'String')) returns contents of editUsername as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function editUsername_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editUsername (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    empty - handles not created until after all CreateFcns called
+
+    % Hint: edit controls usually have a white background on Windows.
+    %       See ISPC and COMPUTER.
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 
 % --- Executes on button press in checkboxHoverZoom.
-function checkboxHoverZoom_Callback(hObject, eventdata, handles)
-% hObject    handle to checkboxHoverZoom (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function checkboxHoverZoom_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to checkboxHoverZoom (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of checkboxHoverZoom
+    % Hint: get(hObject,'Value') returns toggle state of checkboxHoverZoom
 
 
 % --- Executes on button press in checkboxSaveLocal.
-function checkboxSaveLocal_Callback(hObject, eventdata, handles)
-% hObject    handle to checkboxSaveLocal (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function checkboxSaveLocal_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
+    % hObject    handle to checkboxSaveLocal (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of checkboxSaveLocal
+    % Hint: get(hObject,'Value') returns toggle state of checkboxSaveLocal
+    if ~get(hObject,'Value')
+        set(handles.editLocalBackupLocation,'Enable','off');
+        set(handles.pushbuttonLocalBackupLocation,'Enable','off');
+    else
+        set(handles.editLocalBackupLocation,'Enable','on');
+        set(handles.pushbuttonLocalBackupLocation,'Enable','on');
+    end
 
 
+function editLocalBackupLocation_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editLocalBackupLocation (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
-function editLocalBackupLocation_Callback(hObject, eventdata, handles)
-% hObject    handle to editLocalBackupLocation (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of editLocalBackupLocation as text
-%        str2double(get(hObject,'String')) returns contents of editLocalBackupLocation as a double
+    % Hints: get(hObject,'String') returns contents of editLocalBackupLocation as text
+    %        str2double(get(hObject,'String')) returns contents of editLocalBackupLocation as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function editLocalBackupLocation_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to editLocalBackupLocation (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
+function editLocalBackupLocation_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editLocalBackupLocation (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
+    % Hint: edit controls usually have a white background on Windows.
+    %       See ISPC and COMPUTER.
+    if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+        set(hObject,'BackgroundColor','white');
+    end
 
 
 % --- Executes on button press in pushbuttonLocalBackupLocation.
-function pushbuttonLocalBackupLocation_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbuttonLocalBackupLocation (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function pushbuttonLocalBackupLocation_Callback(hObject, eventdata, handles)  %#ok<DEFNU,INUSL>
+    % hObject    handle to pushbuttonLocalBackupLocation (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+    path = uigetdir('','Select a directory to store local backups of processed data');
+    set(handles.editLocalBackupLocation,'String',path);
+
+% --------------------------------------------------------------------
+function menuFile_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to menuFile (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function menuFile_Callback(hObject, eventdata, handles)
-% hObject    handle to menuFile (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function menuFileNew_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
+    % hObject    handle to menuFileNew (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+    resetAllFields(handles);
+    set(handles.textStatus,'string','Enter new settings');
+    
+function resetAllFields(handles)
+    set(handles.editUsername,'string','');
+    set(handles.editEmail,'string','');
+    set(handles.editLocalBackupLocation,'string','');
+    set(handles.checkboxHoverZoom,'Value',0);
+    set(handles.checkboxSaveLocal,'Value',0);
+    set(handles.editLocalBackupLocation,'Enable','off');
+    set(handles.pushbuttonLocalBackupLocation,'Enable','off');
+    
+
+% --------------------------------------------------------------------
+function menuFileOpen_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
+    % hObject    handle to menuFileOpen (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+    [filename, pathname] = uigetfile('*.mat', 'Select setting file to import...');
+    if ~isequal(filename,0) && ~isequal(pathname,0)
+       load(fullfile(pathname, filename));
+       if ~exist('setting','var')
+           errordlg('Invalid settings file.','File Error');
+       else
+           fillFields(setting,handles);
+           save('settings/currentSettings.mat','setting'); 
+       end
+    end
 
 
 % --------------------------------------------------------------------
-function menuFileNew_Callback(hObject, eventdata, handles)
-% hObject    handle to menuFileNew (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
+function menuFileSave_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
+    % hObject    handle to menuFileSave (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
+    saveAllSettings(handles);
+    
+    
+function saveAllSettings(handles)
+    setting.uName = get(handles.editUsername,'string');
+    setting.email = get(handles.editEmail,'string');
+    
+    setting.doHoverZoom = get(handles.checkboxHoverZoom,'Value');
+    setting.doSaveLocalBackups = get(handles.checkboxSaveLocal,'Value');
+    if setting.doSaveLocalBackups
+        setting.localBackupLocation = get(handles.editLocalBackupLocation,'string');
+    else
+        setting.localBackupLocation = '';
+    end
+    save(['settings/' setting.uName '.mat'],'setting');
+    save('settings/currentSettings.mat','setting'); 
+    set(handles.textStatus,'string',['Settings saved for ' setting.uName]);
 
 % --------------------------------------------------------------------
-function menuFileOpen_Callback(hObject, eventdata, handles)
-% hObject    handle to menuFileOpen (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function menuFileExit_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
+    % hObject    handle to menuFileExit (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
+    figureTwoPhotonAnalysisPrefs_CloseRequestFcn(handles.figureTwoPhotonAnalysisPrefs, eventdata, handles)
+    
 
-% --------------------------------------------------------------------
-function menuFileSave_Callback(hObject, eventdata, handles)
-% hObject    handle to menuFileSave (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% --- Executes when user attempts to close figureTwoPhotonAnalysisPrefs.
+function figureTwoPhotonAnalysisPrefs_CloseRequestFcn(hObject, eventdata, handles)  %#ok<INUSL>
+    % hObject    handle to figureTwoPhotonAnalysisPrefs (see GCBO)
+    % eventdata  reserved - to be defined in a future version of MATLAB
+    % handles    structure with handles and user data (see GUIDATA)
 
+    % Hint: delete(hObject) closes the figure
+    
+    % use clearall to get rid of 'do not ask to save preferences dialog' 
+    % uisetpref('save2pPrefsbeforeclosing','ask'); 
 
-% --------------------------------------------------------------------
-function menuFileExit_Callback(hObject, eventdata, handles)
-% hObject    handle to menuFileExit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+    selectedButton = uigetpref('graphics','save2pPrefsbeforeclosing','Closing Preferences',...
+        {'Do you want to save your figure before closing?' '' ''},...
+        {'y','n';'Yes','No'},...
+        'ExtraOptions','Cancel',...
+        'DefaultButton','Cancel');
+    
+    if strcmp(selectedButton,'cancel')
+        return;
+    end
+        
+    if selectedButton == 'y'
+        saveAllSettings(handles);
+    end
+    
+    delete(hObject);
