@@ -1,4 +1,4 @@
-function [sig,sigNoAlign] = pullsigs(rawFullPath,segment,info,align)
+function [sig,sigNoAlign] = pullsigs(fullFilePath,segment,info,align)
     % Given the segmentation, this method pulls the timecourse for each ROI
     % from the channel specified in 'segment'
     % Accepts:
@@ -16,7 +16,7 @@ function [sig,sigNoAlign] = pullsigs(rawFullPath,segment,info,align)
     nFrames = info.max_idx+1;
     chan    = segment.chan;
     idx     = cell(1,nRoi);
-
+    
     for c=1:nRoi
         idx{c} = find(segment.fullMask==c);
     end
@@ -25,7 +25,7 @@ function [sig,sigNoAlign] = pullsigs(rawFullPath,segment,info,align)
     sigNoAlign  = zeros(nFrames, nRoi);
 
     for ii=1:nFrames
-        z = sbxread(rawFullPath,ii-1,1);
+        z = sbxread(fullFilePath,ii-1,1);
         z = squeeze(z(chan,:,:));
         if ~isempty(align)
             zAlign = circshift(z,align.T(ii,:));

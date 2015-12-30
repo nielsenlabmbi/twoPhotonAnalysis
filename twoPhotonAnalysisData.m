@@ -61,10 +61,11 @@ function twoPhotonAnalysisData_OpeningFcn(hObject, eventdata, handles, varargin)
     % UIWAIT makes twoPhotonAnalysisData wait for user response (see UIRESUME)
     % uiwait(handles.figureTwoPhotonAnalysisData);
     
-    pullDataInputs.align       = varargin{2};
-    pullDataInputs.image       = varargin{3};
+    pullDataInputs.rawFullPath = varargin{2};
+    pullDataInputs.align       = varargin{3};
     pullDataInputs.segment     = varargin{4};
-    pullDataInputs.analyzer    = varargin{5};
+    pullDataInputs.info        = varargin{5};
+    pullDataInputs.analyzer    = varargin{6};
     
     pullDataInputs.preDelay    = 1000*pullDataInputs.analyzer.P.param{1}{3}; % this is how zdata did it. 
     pullDataInputs.postDelay   = 1000*pullDataInputs.analyzer.P.param{2}{3}; % Should do this using getparamval instead
@@ -93,13 +94,12 @@ function twoPhotonAnalysisData_OpeningFcn(hObject, eventdata, handles, varargin)
     % Set a default filter width
     pullDataInputs.filterWidth = 100;
     set(handles.editFiltWidth,  'String',num2str(pullDataInputs.filterWidth));
-    
+    set(handles.figureTwoPhotonAnalysisData,'name',...
+        [get(handles.figureTwoPhotonAnalysisData,'name') ': ' pullDataInputs.rawFullPath.fullExpt]);
     pullDataInputs.alignNames = cell(length(pullDataInputs.align)+2,1);
     pullDataInputs.alignNames{1} = 'Select align...';
     pullDataInputs.alignNames{2} = 'none';
-    for ii=1:length(pullDataInputs.align)
-        pullDataInputs.alignNames{ii+2} = pullDataInputs.align(ii).name;
-    end
+    pullDataInputs.alignNames(3:end) = {pullDataInputs.align.name};
     
     set(handles.popupmenuAlign,'string',pullDataInputs.alignNames);
     save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
@@ -342,8 +342,42 @@ function pushbuttonPull_Callback(hObject, eventdata, handles)
     % hObject    handle to pushbuttonPull (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
+    load('localBackups/pullDataInputs_temp.mat');
     
+    if get(handles.popupmenuAlign,'Value') == 1
+        errordlg('Select an align file from the pulldown menu.','Align name not found');
+        return;
+    elseif get(handles.popupmenuAlign,'Value') == 2
+        selectedAlign = [];
+    else
+        selectedAlign = pullDataInputs.align(get(handles.popupmenuAlign,'Value')-2);
+    end
+    
+    if get(handles.radiobuttonLocal,'value')
+        [sig,sigNoAlign] = pullsigs(pullDataInputs.rawFullPath.fullPath,pullDataInputs.segment,pullDataInputs.info,selectedAlign);
+    else
+        disp('Cluster computing is not available in this release.');
+    end
+    
+    signal.alignIndex = get(handles.popupmenuAlign,'Value')-2;
+    signal.chan = pullDataInputs.segment.chan;
+    signal.segmentIndex = pullDataInputs.segment.index;
+    signal.tc = sig;
+    signal.name = ['s(' num2str(pullDataInputs.segment.chan) ')_' selectedAlign.name];
 
+    if exist(['localBackups/' pullDataInputs.rawFullPath.fullExpt '_signals.mat'],'file')
+        load(['localBackups/' pullDataInputs.rawFullPath.fullExpt '_signals.mat']);
+        signal.index = max([signals.index]) + 1;
+    elseif exist([pullDataInputs.rawFullPath.fullPath '_signals.mat'],'file')
+        load([pullDataInputs.rawFullPath.fullPath '_signals.mat']);
+        signal.index = max([signals.index]) + 1;
+    else
+        signals = struct([]);
+        signal.index = 1;
+    end
+    signals(length(signals)+1) = signal;
+    save([pullDataInputs.rawFullPath.fullPath '_signals.mat'],'signals');
+    save(['localBackups/' pullDataInputs.rawFullPath.fullExpt '_signals.mat'],'signals');
 
 % --- Executes on selection change in popupmenuAlign.
 function popupmenuAlign_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
@@ -354,7 +388,7 @@ function popupmenuAlign_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
     % Hints: contents = cellstr(get(hObject,'String')) returns popupmenuAlign contents as cell array
     %        contents{get(hObject,'Value')} returns selected item from popupmenuAlign
 
-
+    
 % --- Executes during object creation, after setting all properties.
 function popupmenuAlign_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
     % hObject    handle to popupmenuAlign (see GCBO)
