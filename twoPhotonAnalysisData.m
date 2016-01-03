@@ -62,28 +62,42 @@ function twoPhotonAnalysisData_OpeningFcn(hObject, eventdata, handles, varargin)
     % uiwait(handles.figureTwoPhotonAnalysisData);
     
     pullDataInputs.rawFullPath = varargin{2};
+    
+    localInputTempFile = getLocalTempFile(pullDataInputs.rawFullPath.fullExpt);
+    
+    if ~exist(localInputTempFile,'file')
+        pullDataInputs.analyzer    = varargin{6};
+
+        pullDataInputs.preDelay    = 1000*pullDataInputs.analyzer.P.param{1}{3}; % this is how zdata did it. 
+        pullDataInputs.postDelay   = 1000*pullDataInputs.analyzer.P.param{2}{3}; % Should do this using getparamval instead
+        pullDataInputs.stimDur     = 1000*pullDataInputs.analyzer.P.param{3}{3};
+
+        pullDataInputs.baseStart   = -min(1000,pullDataInputs.preDelay);
+        pullDataInputs.baseEnd     = 0;
+        pullDataInputs.respStart   = 200;
+        pullDataInputs.respEnd     = pullDataInputs.stimDur + 200;
+        pullDataInputs.rangeStart  = -pullDataInputs.preDelay;
+        pullDataInputs.rangeEnd    = pullDataInputs.stimDur + pullDataInputs.postDelay;
+
+        pullDataInputs.filterWidth = 100;
+
+        pullDataInputs.alignNames = cell(length(pullDataInputs.align)+2,1);
+        pullDataInputs.alignNames{1} = 'Select align...';
+        pullDataInputs.alignNames{2} = 'none';
+        pullDataInputs.alignNames(3:end) = {pullDataInputs.align.name};
+        save(localInputTempFile,'pullDataInputs');
+    else
+        load(localInputTempFile);
+    end
+    
     pullDataInputs.align       = varargin{3};
     pullDataInputs.segment     = varargin{4};
     pullDataInputs.info        = varargin{5};
-    pullDataInputs.analyzer    = varargin{6};
-    
-    pullDataInputs.preDelay    = 1000*pullDataInputs.analyzer.P.param{1}{3}; % this is how zdata did it. 
-    pullDataInputs.postDelay   = 1000*pullDataInputs.analyzer.P.param{2}{3}; % Should do this using getparamval instead
-    pullDataInputs.stimDur     = 1000*pullDataInputs.analyzer.P.param{3}{3};
     
     set(handles.textPreDelay,   'String',[num2str(pullDataInputs.preDelay) ' ms']);
     set(handles.textStimDur,    'String',[num2str(pullDataInputs.stimDur) ' ms']);
     set(handles.textPostDelay,  'String',[num2str(pullDataInputs.postDelay) ' ms']);
     
-    % Use these to set up default signal acquisition epochs
-    pullDataInputs.baseStart   = -min(1000,pullDataInputs.preDelay);
-    pullDataInputs.baseEnd     = 0;
-    pullDataInputs.respStart   = 200;
-    pullDataInputs.respEnd     = pullDataInputs.stimDur + 200;
-    pullDataInputs.rangeStart  = -pullDataInputs.preDelay;
-    pullDataInputs.rangeEnd    = pullDataInputs.stimDur + pullDataInputs.postDelay;
-    
-    % Place these values in the GUI
     set(handles.editBaseStart,  'String',num2str(pullDataInputs.baseStart));
     set(handles.editBaseEnd,    'String',num2str(pullDataInputs.baseEnd));
     set(handles.editRespStart,  'String',num2str(pullDataInputs.respStart));
@@ -91,22 +105,16 @@ function twoPhotonAnalysisData_OpeningFcn(hObject, eventdata, handles, varargin)
     set(handles.editRangeStart, 'String',num2str(pullDataInputs.rangeStart));
     set(handles.editRangeEnd,   'String',num2str(pullDataInputs.rangeEnd));
     
-    % Set a default filter width
-    pullDataInputs.filterWidth = 100;
     set(handles.editFiltWidth,  'String',num2str(pullDataInputs.filterWidth));
     set(handles.figureTwoPhotonAnalysisData,'name',...
         [get(handles.figureTwoPhotonAnalysisData,'name') ': ' pullDataInputs.rawFullPath.fullExpt]);
-    pullDataInputs.alignNames = cell(length(pullDataInputs.align)+2,1);
-    pullDataInputs.alignNames{1} = 'Select align...';
-    pullDataInputs.alignNames{2} = 'none';
-    pullDataInputs.alignNames(3:end) = {pullDataInputs.align.name};
     
     set(handles.popupmenuAlign,'string',pullDataInputs.alignNames);
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
     refreshAxis(handles);
     
 function refreshAxis(handles)
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     cla(handles.axisTiming);
     fakeT = linspace(pullDataInputs.rangeStart,pullDataInputs.rangeEnd,200);
     fakeR = zeros(1,200);
@@ -146,9 +154,10 @@ function editBaseStart_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
 
     % Hints: get(hObject,'String') returns contents of editBaseStart as text
     %        str2double(get(hObject,'String')) returns contents of editBaseStart as a double
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     pullDataInputs.baseStart = str2double(get(hObject,'String'));
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
+    save(localInputTempFile,'pullDataInputs');
     refreshAxis(handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -172,9 +181,10 @@ function editRespStart_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
 
     % Hints: get(hObject,'String') returns contents of editRespStart as text
     %        str2double(get(hObject,'String')) returns contents of editRespStart as a double
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     pullDataInputs.respStart = str2double(get(hObject,'String'));
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
+    save(localInputTempFile,'pullDataInputs');
     refreshAxis(handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -197,9 +207,10 @@ function editRangeStart_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
 
     % Hints: get(hObject,'String') returns contents of editRangeStart as text
     %        str2double(get(hObject,'String')) returns contents of editRangeStart as a double
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     pullDataInputs.rangeStart = str2double(get(hObject,'String'));
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
+    save(localInputTempFile,'pullDataInputs');
     refreshAxis(handles);
     
     
@@ -223,9 +234,10 @@ function editBaseEnd_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
 
     % Hints: get(hObject,'String') returns contents of editBaseEnd as text
     %        str2double(get(hObject,'String')) returns contents of editBaseEnd as a double
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     pullDataInputs.baseEnd = str2double(get(hObject,'String'));
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
+    save(localInputTempFile,'pullDataInputs');
     refreshAxis(handles);
     
 % --- Executes during object creation, after setting all properties.
@@ -249,9 +261,10 @@ function editRangeEnd_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
 
     % Hints: get(hObject,'String') returns contents of editRangeEnd as text
     %        str2double(get(hObject,'String')) returns contents of editRangeEnd as a double
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     pullDataInputs.rangeEnd = str2double(get(hObject,'String'));
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
+    save(localInputTempFile,'pullDataInputs');
     refreshAxis(handles);
 
     
@@ -275,9 +288,10 @@ function editRespEnd_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
 
     % Hints: get(hObject,'String') returns contents of editRespEnd as text
     %        str2double(get(hObject,'String')) returns contents of editRespEnd as a double
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     pullDataInputs.respEnd = str2double(get(hObject,'String'));
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
+    save(localInputTempFile,'pullDataInputs');
     refreshAxis(handles);
     
 
@@ -301,9 +315,10 @@ function editFiltWidth_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
 
     % Hints: get(hObject,'String') returns contents of editFiltWidth as text
     %        str2double(get(hObject,'String')) returns contents of editFiltWidth as a double
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     pullDataInputs.filtWidth = str2double(get(hObject,'String'));
-    save('localBackups/pullDataInputs_temp.mat','pullDataInputs');
+    save(localInputTempFile,'pullDataInputs');
     refreshAxis(handles);
 
 % --- Executes during object creation, after setting all properties.
@@ -338,46 +353,59 @@ function radiobuttonCluster_Callback(hObject, eventdata, handles) %#ok<DEFNU,INU
 
 
 % --- Executes on button press in pushbuttonPull.
-function pushbuttonPull_Callback(hObject, eventdata, handles)
+function pushbuttonPull_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
     % hObject    handle to pushbuttonPull (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-    load('localBackups/pullDataInputs_temp.mat');
+    localInputTempFile = getLocalTempFile(getFullExpt(handles));
+    load(localInputTempFile);
     
     if get(handles.popupmenuAlign,'Value') == 1
         errordlg('Select an align file from the pulldown menu.','Align name not found');
         return;
     elseif get(handles.popupmenuAlign,'Value') == 2
-        selectedAlign = [];
+        selectedAlign.name = 'a()';
     else
         selectedAlign = pullDataInputs.align(get(handles.popupmenuAlign,'Value')-2);
     end
     
     if get(handles.radiobuttonLocal,'value')
-        [sig,sigNoAlign] = pullsigs(pullDataInputs.rawFullPath.fullPath,pullDataInputs.segment,pullDataInputs.info,selectedAlign);
+        sig = pullsigs(pullDataInputs.rawFullPath.fullPath,pullDataInputs.segment,pullDataInputs.info,selectedAlign);
     else
-        disp('Cluster computing is not available in this release.');
+        errordlg('Cluster computing is not available in this release.','Cluster config not set');
+        return;
     end
     
     signal.alignIndex = get(handles.popupmenuAlign,'Value')-2;
     signal.chan = pullDataInputs.segment.chan;
     signal.segmentIndex = pullDataInputs.segment.index;
     signal.tc = sig;
-    signal.name = ['s(' num2str(pullDataInputs.segment.chan) ')_' selectedAlign.name];
-
+    signal.name = ['s(c' num2str(pullDataInputs.segment.chan) ')_' selectedAlign.name];
+    
     if exist(['localBackups/' pullDataInputs.rawFullPath.fullExpt '_signals.mat'],'file')
         load(['localBackups/' pullDataInputs.rawFullPath.fullExpt '_signals.mat']);
         signal.index = max([signals.index]) + 1;
+        signals(length(signals)+1) = signal;
     elseif exist([pullDataInputs.rawFullPath.fullPath '_signals.mat'],'file')
         load([pullDataInputs.rawFullPath.fullPath '_signals.mat']);
         signal.index = max([signals.index]) + 1;
+        signals(length(signals)+1) = signal;
     else
-        signals = struct([]);
         signal.index = 1;
+        signals(1) = signal;
     end
-    signals(length(signals)+1) = signal;
-    save([pullDataInputs.rawFullPath.fullPath '_signals.mat'],'signals');
-    save(['localBackups/' pullDataInputs.rawFullPath.fullExpt '_signals.mat'],'signals');
+    set(handles.textStatus,'string','Signals extracted. Formatting final data file.')
+    
+    % save to local and/or sbx location depending upon the setting
+    load('settings/currentSettings.mat');
+    if setting.doSaveLocal
+        save([setting.localSaveLocation '/' pullDataInputs.rawFullPath.fullExpt '_signals.mat'],'signals');
+    end
+    if setting.doSaveAtSbx
+        save([pullDataInputs.rawFullPath.fullPath '_signals.mat'],'signals');
+    end
+    
+    % format and save data file.
 
 % --- Executes on selection change in popupmenuAlign.
 function popupmenuAlign_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
@@ -400,3 +428,21 @@ function popupmenuAlign_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
     if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
         set(hObject,'BackgroundColor','white');
     end
+    
+function localInputTempFile = getLocalTempFile(exptName)
+    load('settings/currentSettings.mat');
+    if setting.doSaveLocal
+        localInputTempFile = [setting.localSaveLocation '/' exptName '_pullDataInputs.mat'];
+    elseif exist('localTempLocationForDataSave','dir')
+        localInputTempFile = ['localTempLocationForDataSave/' exptName '_pullDataInputs.mat'];
+    else
+        mkdir('localTempLocationForDataSave');
+        localInputTempFile = ['localTempLocationForDataSave/' exptName '_pullDataInputs.mat'];
+    end
+        
+    
+function c = getFullExpt(handles)
+    % so hacky! I hate it!
+    a = get(handles.figureTwoPhotonAnalysisData,'name');
+    b = find(a==':');
+    c = a(b(2)+2:end);

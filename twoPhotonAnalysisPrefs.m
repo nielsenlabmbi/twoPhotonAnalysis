@@ -22,7 +22,7 @@ function varargout = twoPhotonAnalysisPrefs(varargin)
 
     % Edit the above text to modify the response to help twoPhotonAnalysisPrefs
 
-    % Last Modified by GUIDE v2.5 25-Dec-2015 19:29:03
+    % Last Modified by GUIDE v2.5 31-Dec-2015 09:04:16
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -60,23 +60,25 @@ function twoPhotonAnalysisPrefs_OpeningFcn(hObject,eventdata, handles, varargin)
 
     % UIWAIT makes twoPhotonAnalysisPrefs wait for user response (see UIRESUME)
     % uiwait(handles.figureTwoPhotonAnalysisPrefs);
-    if ~exist('settings','dir');                      mkdir('settings');          end
-    if ~exist('settings/currentSettings.mat','file'); makeDefaultSettingsFiles(); end
+    if ~exist('settings','dir');                      mkdir('settings');                 end
+    if ~exist('settings/currentSettings.mat','file'); makeDefaultSettingsFiles(handles); end
 
     load('settings/currentSettings.mat');
     fillFields(setting,handles);
     
-    if ~exist(setting.localBackupLocation,'dir') && ~isempty(setting.localBackupLocation)
-        mkdir(setting.localBackupLocation); 
+    if ~isempty(setting.localSaveLocation) && ~exist(setting.localSaveLocation,'dir')
+        mkdir(setting.localSaveLocation); 
     end
     
 
-function makeDefaultSettingsFiles()
+function makeDefaultSettingsFiles(handles)
     setting.uName = 'admin';
     setting.email = 'nielsenlabmbi@gmail.com';
     setting.doHoverZoom = 1; 
-    setting.doSaveLocalBackups = 1; 
-    setting.localBackupLocation = 'localBackups';
+    setting.doSaveLocal = 1; 
+    setting.doSaveAtSbx = 1; 
+    setting.requireAnalyzer = 1; 
+    setting.localSaveLocation = 'localProcessedData';
     save(['settings/' setting.uName '.mat'],'setting');
     save('settings/currentSettings.mat','setting');
     set(handles.textStatus,'string','Created default settings');
@@ -85,15 +87,17 @@ function makeDefaultSettingsFiles()
 function fillFields(setting,handles)
     set(handles.editUsername,'string',setting.uName);
     set(handles.editEmail,'string',setting.email);
-    set(handles.editLocalBackupLocation,'string',setting.localBackupLocation);
+    set(handles.editLocalLocation,'string',setting.localSaveLocation);
     set(handles.checkboxHoverZoom,'Value',setting.doHoverZoom);
-    set(handles.checkboxSaveLocal,'Value',setting.doSaveLocalBackups);
-    if ~setting.doSaveLocalBackups
-        set(handles.editLocalBackupLocation,'Enable','off');
-        set(handles.pushbuttonLocalBackupLocation,'Enable','off');
+    set(handles.checkboxSaveLocal,'Value',setting.doSaveLocal);
+    set(handles.checkboxSaveAtSbx,'Value',setting.doSaveAtSbx);
+    set(handles.checkboxRequireAnalyzer,'Value',setting.requireAnalyzer);
+    if ~setting.doSaveLocal
+        set(handles.editLocalLocation,'Enable','off');
+        set(handles.pushbuttonLocalLocation,'Enable','off');
     else
-        set(handles.editLocalBackupLocation,'Enable','on');
-        set(handles.pushbuttonLocalBackupLocation,'Enable','on');
+        set(handles.editLocalLocation,'Enable','on');
+        set(handles.pushbuttonLocalLocation,'Enable','on');
     end
     set(handles.textStatus,'string',['Loaded settings for ' setting.uName]);
 
@@ -171,26 +175,26 @@ function checkboxSaveLocal_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFN
 
     % Hint: get(hObject,'Value') returns toggle state of checkboxSaveLocal
     if ~get(hObject,'Value')
-        set(handles.editLocalBackupLocation,'Enable','off');
-        set(handles.pushbuttonLocalBackupLocation,'Enable','off');
+        set(handles.editLocalLocation,'Enable','off');
+        set(handles.pushbuttonLocalLocation,'Enable','off');
     else
-        set(handles.editLocalBackupLocation,'Enable','on');
-        set(handles.pushbuttonLocalBackupLocation,'Enable','on');
+        set(handles.editLocalLocation,'Enable','on');
+        set(handles.pushbuttonLocalLocation,'Enable','on');
     end
 
 
-function editLocalBackupLocation_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
-    % hObject    handle to editLocalBackupLocation (see GCBO)
+function editLocalLocation_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editLocalLocation (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
 
-    % Hints: get(hObject,'String') returns contents of editLocalBackupLocation as text
-    %        str2double(get(hObject,'String')) returns contents of editLocalBackupLocation as a double
+    % Hints: get(hObject,'String') returns contents of editLocalLocation as text
+    %        str2double(get(hObject,'String')) returns contents of editLocalLocation as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function editLocalBackupLocation_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
-    % hObject    handle to editLocalBackupLocation (see GCBO)
+function editLocalLocation_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
+    % hObject    handle to editLocalLocation (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    empty - handles not created until after all CreateFcns called
 
@@ -201,13 +205,13 @@ function editLocalBackupLocation_CreateFcn(hObject, eventdata, handles) %#ok<DEF
     end
 
 
-% --- Executes on button press in pushbuttonLocalBackupLocation.
-function pushbuttonLocalBackupLocation_Callback(hObject, eventdata, handles)  %#ok<DEFNU,INUSL>
-    % hObject    handle to pushbuttonLocalBackupLocation (see GCBO)
+% --- Executes on button press in pushbuttonLocalLocation.
+function pushbuttonLocalLocation_Callback(hObject, eventdata, handles)  %#ok<DEFNU,INUSL>
+    % hObject    handle to pushbuttonLocalLocation (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
     path = uigetdir('','Select a directory to store local backups of processed data');
-    set(handles.editLocalBackupLocation,'String',path);
+    set(handles.editLocalLocation,'String',path);
 
 % --------------------------------------------------------------------
 function menuFile_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
@@ -227,11 +231,13 @@ function menuFileNew_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
 function resetAllFields(handles)
     set(handles.editUsername,'string','');
     set(handles.editEmail,'string','');
-    set(handles.editLocalBackupLocation,'string','');
+    set(handles.editLocalLocation,'string','');
     set(handles.checkboxHoverZoom,'Value',0);
     set(handles.checkboxSaveLocal,'Value',0);
-    set(handles.editLocalBackupLocation,'Enable','off');
-    set(handles.pushbuttonLocalBackupLocation,'Enable','off');
+    set(handles.checkboxSaveAtSbx,'Value',0);
+    set(handles.checkboxRequireAnalyzer,'Value',0);
+    set(handles.editLocalLocation,'Enable','off');
+    set(handles.pushbuttonLocalLocation,'Enable','off');
     
 
 % --------------------------------------------------------------------
@@ -263,12 +269,15 @@ function saveAllSettings(handles)
     setting.uName = get(handles.editUsername,'string');
     setting.email = get(handles.editEmail,'string');
     
-    setting.doHoverZoom = get(handles.checkboxHoverZoom,'Value');
-    setting.doSaveLocalBackups = get(handles.checkboxSaveLocal,'Value');
-    if setting.doSaveLocalBackups
-        setting.localBackupLocation = get(handles.editLocalBackupLocation,'string');
+    setting.doHoverZoom     = get(handles.checkboxHoverZoom,'Value');
+    setting.doSaveLocal     = get(handles.checkboxSaveLocal,'Value');
+    setting.doSaveAtSbx     = get(handles.checkboxSaveAtSbx,'Value');
+    setting.requireAnalyzer = get(handles.checkboxRequireAnalyzer,'Value');
+    
+    if setting.doSaveLocal
+        setting.localSaveLocation = get(handles.editLocalLocation,'string');
     else
-        setting.localBackupLocation = '';
+        setting.localSaveLocation = '';
     end
     save(['settings/' setting.uName '.mat'],'setting');
     save('settings/currentSettings.mat','setting'); 
@@ -309,3 +318,21 @@ function figureTwoPhotonAnalysisPrefs_CloseRequestFcn(hObject, eventdata, handle
     end
     
     delete(hObject);
+
+
+% --- Executes on button press in checkboxRequireAnalyzer.
+function checkboxRequireAnalyzer_Callback(hObject, eventdata, handles)
+% hObject    handle to checkboxRequireAnalyzer (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkboxRequireAnalyzer
+
+
+% --- Executes on button press in checkboxSaveAtSbx.
+function checkboxSaveAtSbx_Callback(hObject, eventdata, handles)
+% hObject    handle to checkboxSaveAtSbx (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of checkboxSaveAtSbx
