@@ -399,7 +399,7 @@ function pushbuttonPull_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSL>
     % save to local and/or sbx location depending upon the setting
     load('settings/currentSettings.mat');
     if setting.doSaveLocal
-        save([setting.localSaveLocation '/' pullDataInputs.rawFullPath.fullExpt '_signals.mat'],'signals');
+        save([setting.localSaveLocation pullDataInputs.rawFullPath.fullExpt '_signals.mat'],'signals');
     end
     if setting.doSaveAtSbx
         save([pullDataInputs.rawFullPath.fullPath '_signals.mat'],'signals');
@@ -432,7 +432,7 @@ function popupmenuAlign_CreateFcn(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
 function localInputTempFile = getLocalTempFile(exptName)
     load('settings/currentSettings.mat');
     if setting.doSaveLocal
-        localInputTempFile = [setting.localSaveLocation '/' exptName '_pullDataInputs.mat'];
+        localInputTempFile = [setting.localSaveLocation exptName '_pullDataInputs.mat'];
     elseif exist('localTempLocationForDataSave','dir')
         localInputTempFile = ['localTempLocationForDataSave/' exptName '_pullDataInputs.mat'];
     else

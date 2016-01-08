@@ -78,7 +78,7 @@ function makeDefaultSettingsFiles(handles)
     setting.doSaveLocal = 1; 
     setting.doSaveAtSbx = 1; 
     setting.requireAnalyzer = 1; 
-    setting.localSaveLocation = 'localProcessedData';
+    setting.localSaveLocation = 'localProcessedData/';
     save(['settings/' setting.uName '.mat'],'setting');
     save('settings/currentSettings.mat','setting');
     set(handles.textStatus,'string','Created default settings');
@@ -211,7 +211,7 @@ function pushbuttonLocalLocation_Callback(hObject, eventdata, handles)  %#ok<DEF
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
     path = uigetdir('','Select a directory to store local backups of processed data');
-    set(handles.editLocalLocation,'String',path);
+    set(handles.editLocalLocation,'String',[path '/']);
 
 % --------------------------------------------------------------------
 function menuFile_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
