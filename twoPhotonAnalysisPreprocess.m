@@ -22,7 +22,7 @@ function varargout = twoPhotonAnalysisPreprocess(varargin)
 
     % Edit the above text to modify the response to help twoPhotonAnalysisPreprocess
 
-    % Last Modified by GUIDE v2.5 25-Dec-2015 14:16:57
+    % Last Modified by GUIDE v2.5 03-Jan-2016 23:13:42
 
     % Begin initialization code - DO NOT EDIT
     gui_Singleton = 1;
@@ -92,17 +92,36 @@ function radiobuttonCluster_Callback(hObject, eventdata, handles)
 
 
 % --- Executes on button press in pushbuttonAddFile.
-function pushbuttonAddFile_Callback(hObject, eventdata, handles)
+function pushbuttonAddFile_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
     % hObject    handle to pushbuttonAddFile (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-    
+    load('settings/currentSettings.mat');
     [rawFullPath.fullExpt,rawFullPath.path] = uigetfile('*.sbx', 'Pick a raw file (sbx)','MultiSelect', 'on');
+    
     if ~isequal(rawFullPath.fullExpt,0) && ~isequal(rawFullPath.path,0)
         rawFullPath.fullExpt = rawFullPath.fullExpt(1:strfind(rawFullPath.fullExpt,'.sbx')-1);
         rawFullPath.fullPath = fullfile(rawFullPath.path,rawFullPath.fullExpt);
         [rawFullPath.animal,rawFullPath.unit,rawFullPath.expt] = splitDelimitedExpt(rawFullPath.fullExpt);
        
+        if ~exist([rawFullPath.fullPath '.mat'],'file')
+            errordlg('The info file does not exist in the same directory.','File not found');
+            return;
+        elseif setting.requireAnalyzer
+            if ~exist([rawFullPath.path rawFullPath.animal '_u' rawFullPath.unit '_' rawFullPath.expt '.Analyzer'],'file')
+                errordlg('The analyzer file does not exist in the same directory.','File not found');
+                return;
+            else
+                load([rawFullPath.path rawFullPath.animal '_u' rawFullPath.unit '_' rawFullPath.expt '.Analyzer'],'-mat');
+                analyzer = Analyzer; %#ok<NASGU>
+                if setting.doSaveAtSbx
+                    save([rawFullPath.path rawFullPath.animal '_' rawFullPath.unit '_' rawFullPath.expt '_analyzer.mat'],'analyzer');
+                end
+                if setting.doSaveLocal
+                    save([setting.localSaveLocation rawFullPath.animal '_' rawFullPath.unit '_' rawFullPath.expt '_analyzer.mat'],'analyzer');
+                end
+            end
+        end
         fileList = getFileListToProcess();
         if isempty(fileList)
             fileList = struct(rawFullPath);
@@ -110,8 +129,8 @@ function pushbuttonAddFile_Callback(hObject, eventdata, handles)
             fileList(length(fileList)+1) = rawFullPath;
         end
         setFileListToProcess(fileList);
+        refreshFileList(handles);
     end
-    refreshFileList(handles);
     
     
 function [animal,unit,expt] = splitDelimitedExpt(fullExpt)
@@ -122,22 +141,57 @@ function [animal,unit,expt] = splitDelimitedExpt(fullExpt)
     
 
 % --- Executes on button press in pushbuttonRemoveFile.
-function pushbuttonRemoveFile_Callback(hObject, eventdata, handles)
+function pushbuttonRemoveFile_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
     % hObject    handle to pushbuttonRemoveFile (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-    if isempty(get(handles.uitableFileList,'selected'))
+    
+    global selectedCell; % Global; Bah. #TODO: GET RID OF THIS!
+    if isempty(selectedCell)
+        set(handles.textStatus,'string','Select a file to select.');
+    else
+        fileList = getFileListToProcess();
+        fileList(selectedCell) = [];
+        setFileListToProcess(fileList);
+        selectedCell = [];
+        refreshFileList(handles);
     end
+    
 
 % --- Executes on button press in pushbuttonStart.
-function pushbuttonStart_Callback(hObject, eventdata, handles)
+function pushbuttonStart_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
     % hObject    handle to pushbuttonStart (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
-
+    if get(handles.radiobuttonLocal,'value')
+        fileList = getFileListToProcess();
+        acks = batchPreprocessLocal(fileList);
+    else
+        errordlg('Cluster computing is not available in this release.','Cluster config not set');
+        return;
+    end
+    isError = 0;
+    msg = cell(1,length(fileList));
+    for ii=1:length(fileList)
+        if ack(ii).isDone
+            fileList(ii) = [];
+        else
+            isError = 1;
+        end
+        msg{ii} = ack(ii).msg;
+    end
+    if get(handles.checkboxEmail,'value',1)
+        if isError
+            emailCurrentUser(emailTypes.preprocessError,acks);
+        else
+            emailCurrentUser(emailTypes.preprocessComplete,acks);
+        end
+    end
+    refreshFileList(handles);
+    
 
 % --- Executes on button press in checkboxEmail.
-function checkboxEmail_Callback(hObject, eventdata, handles)
+function checkboxEmail_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
     % hObject    handle to checkboxEmail (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
@@ -168,7 +222,7 @@ function fileList = getFileListToProcess()
         load(localInputTempFile);
     end
     
-function fileList = setFileListToProcess(fileList)
+function setFileListToProcess(fileList) %#ok<INUSD>
     load('settings/currentSettings.mat');
     if setting.doSaveLocal
         localInputTempFile = [setting.localSaveLocation '/preprocessInputsTemp.mat'];
@@ -179,3 +233,17 @@ function fileList = setFileListToProcess(fileList)
         localInputTempFile = 'localTempLocationForDataSave/preprocessInputsTemp.mat';
     end
     save(localInputTempFile,'fileList');
+
+
+% --- Executes when selected cell(s) is changed in uitableFileList.
+function uitableFileList_CellSelectionCallback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
+    % hObject    handle to uitableFileList (see GCBO)
+    % eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
+    %	Indices: row and column indices of the cell(s) currently selecteds
+    % handles    structure with handles and user data (see GUIDATA)
+
+    % this is the only bloody way of getting the selected cell. I hate matlab.
+    global selectedCell; % #TODO: GET RID OF THIS!
+    if ~isempty(eventdata.Indices)
+        selectedCell = eventdata.Indices(1);
+    end
