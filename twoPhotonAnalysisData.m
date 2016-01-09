@@ -66,6 +66,7 @@ function twoPhotonAnalysisData_OpeningFcn(hObject, eventdata, handles, varargin)
     localInputTempFile = getLocalTempFile(pullDataInputs.rawFullPath.fullExpt);
     
     if ~exist(localInputTempFile,'file')
+        pullDataInputs.align       = varargin{3};
         pullDataInputs.analyzer    = varargin{6};
 
         pullDataInputs.preDelay    = 1000*pullDataInputs.analyzer.P.param{1}{3}; % this is how zdata did it. 
@@ -90,7 +91,6 @@ function twoPhotonAnalysisData_OpeningFcn(hObject, eventdata, handles, varargin)
         load(localInputTempFile);
     end
     
-    pullDataInputs.align       = varargin{3};
     pullDataInputs.segment     = varargin{4};
     pullDataInputs.info        = varargin{5};
     
