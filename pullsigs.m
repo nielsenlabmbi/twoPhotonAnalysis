@@ -1,38 +1,32 @@
-function sig = pullsigs(fname)
-% this is an adhoc function. exactly the same as sbxpullsignals except for
-% the fact that we do a check for the presence of the align file. Only if
-% it is present we do the circshift operation. This option is not present
-% in sbxpullsignals.
-
-global info;
-
-load([fname '.segment'],'-mat'); % load segmentation
-
-z = sbxread(fname,1,1);
-ncell = max(mask(:));
-
-idx = cell(1,ncell);
-for i=1:ncell
-    idx{i} = find(mask==i);
-end
-
-sig = zeros(info.max_idx, ncell);
-
-h = waitbar(0,sprintf('Pulling %d signals out...',ncell));
-
-for i=1:info.max_idx+1
-    waitbar(i/(info.max_idx),h);          % update waitbar...
-    z = sbxread(fname,i-1,1);
-    z = squeeze(z(1,:,:));
-    if ~isempty(info.aligned)
-        z = circshift(z,info.aligned.T(i,:)); % align the image
+function sig = pullsigs(fullFilePath,segment,info,align)
+    % Given the segmentation, this method pulls the timecourse for each ROI
+    % from the channel specified in 'segment'
+    % Accepts:
+    %   fullFilePath        - full path of the sbx file without extension
+    %   segment             - segment structure that defines the ROI
+    %   info                - sbx info structure
+    %   align               - structure containing the x-y shifts for each frame
+    % Returns:
+    %   sig                 - full timecourse for all ROI
+    
+    nRoi    = segment.nRoi;
+    nFrames = info.max_idx+1;
+    chan    = segment.chan;
+    idx     = cell(1,nRoi);
+    
+    for c=1:nRoi
+        idx{c} = find(segment.fullMask == c);
     end
-    for j=1:ncell                           % for each cell
-        sig(i,j) = mean(z(idx{j}));       % pull the mean signal out...
+
+    sig = zeros(nFrames, nRoi);
+    for ii=1:nFrames
+        z = sbxread(fullFilePath,ii-1,1);
+        z = squeeze(z(chan,:,:));
+        if ~isempty(align)
+            z = circshift(z,align.T(ii,:));
+        end
+        for c=1:nRoi
+            sig(ii,c)        = mean(z(idx{c}));
+        end
     end
 end
-delete(h);
-
-save([fname '.signals'],'sig');     % append the motion estimate data...
-
-
