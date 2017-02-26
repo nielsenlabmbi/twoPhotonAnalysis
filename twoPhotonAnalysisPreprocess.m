@@ -45,7 +45,7 @@ function varargout = twoPhotonAnalysisPreprocess(varargin)
 
 
 % --- Executes just before twoPhotonAnalysisPreprocess is made visible.
-function twoPhotonAnalysisPreprocess_OpeningFcn(hObject, eventdata, handles, varargin)
+function twoPhotonAnalysisPreprocess_OpeningFcn(hObject, eventdata, handles, varargin) %#ok<INUSL>
     % This function has no output args, see OutputFcn.
     % hObject    handle to figure
     % eventdata  reserved - to be defined in a future version of MATLAB
@@ -63,7 +63,7 @@ function twoPhotonAnalysisPreprocess_OpeningFcn(hObject, eventdata, handles, var
     refreshFileList(handles);
 
 % --- Outputs from this function are returned to the command line.
-function varargout = twoPhotonAnalysisPreprocess_OutputFcn(hObject, eventdata, handles) 
+function varargout = twoPhotonAnalysisPreprocess_OutputFcn(hObject, eventdata, handles)  %#ok<INUSL>
     % varargout  cell array for returning output args (see VARARGOUT);
     % hObject    handle to figure
     % eventdata  reserved - to be defined in a future version of MATLAB
@@ -74,7 +74,7 @@ function varargout = twoPhotonAnalysisPreprocess_OutputFcn(hObject, eventdata, h
 
 
 % --- Executes on button press in radiobuttonLocal.
-function radiobuttonLocal_Callback(hObject, eventdata, handles)
+function radiobuttonLocal_Callback(hObject, eventdata, handles) %#ok<INUSD,DEFNU>
     % hObject    handle to radiobuttonLocal (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
@@ -83,7 +83,7 @@ function radiobuttonLocal_Callback(hObject, eventdata, handles)
 
 
 % --- Executes on button press in radiobuttonCluster.
-function radiobuttonCluster_Callback(hObject, eventdata, handles)
+function radiobuttonCluster_Callback(hObject, eventdata, handles)  %#ok<INUSD,DEFNU>
     % hObject    handle to radiobuttonCluster (see GCBO)
     % eventdata  reserved - to be defined in a future version of MATLAB
     % handles    structure with handles and user data (see GUIDATA)
@@ -165,7 +165,8 @@ function pushbuttonStart_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
     % handles    structure with handles and user data (see GUIDATA)
     if get(handles.radiobuttonLocal,'value')
         fileList = getFileListToProcess();
-        acks = batchPreprocessLocal(fileList);
+        [acks,preprocessedData] = batchPreprocessLocal(fileList);
+        formatAndSavePreprocessedStructure(preprocessedData);
     else
         errordlg('Cluster computing is not available in this release.','Cluster config not set');
         return;
@@ -189,7 +190,9 @@ function pushbuttonStart_Callback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
     end
     refreshFileList(handles);
     
+function formatAndSavePreprocessedStructure(preprocessedData)
 
+    
 % --- Executes on button press in checkboxEmail.
 function checkboxEmail_Callback(hObject, eventdata, handles) %#ok<DEFNU,INUSD>
     % hObject    handle to checkboxEmail (see GCBO)
@@ -236,7 +239,7 @@ function setFileListToProcess(fileList) %#ok<INUSD>
 
 
 % --- Executes when selected cell(s) is changed in uitableFileList.
-function uitableFileList_CellSelectionCallback(hObject, eventdata, handles) %#ok<INUSL,DEFNU>
+function uitableFileList_CellSelectionCallback(hObject, eventdata, handles)  %#ok<INUSL,DEFNU,INUSD>
     % hObject    handle to uitableFileList (see GCBO)
     % eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
     %	Indices: row and column indices of the cell(s) currently selecteds
